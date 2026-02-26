@@ -89,9 +89,9 @@ cd functions
 npm install
 
 # Cloud Function をデプロイ
-gcloud functions deploy api \
+gcloud functions deploy oekaki-api \
   --gen2 \
-  --runtime=nodejs20 \
+  --runtime=nodejs22 \
   --region=asia-northeast1 \
   --trigger-http \
   --allow-unauthenticated \
@@ -103,13 +103,13 @@ cd ..
 ```
 
 デプロイ完了後、表示される URL を控えてください。
-例: `https://asia-northeast1-learings.cloudfunctions.net/api`
+例: `https://asia-northeast1-learings.cloudfunctions.net/oekaki-api
 
 ### 3. フロントエンドのビルドとデプロイ
 
 ```bash
 # .env ファイルを作成して API URL を設定
-echo "VITE_API_URL=https://asia-northeast1-learings.cloudfunctions.net/api" > .env
+echo "VITE_API_URL=https://asia-northeast1-learings.cloudfunctions.net/oekaki-api" > .env
 
 # ビルド
 npm run build
