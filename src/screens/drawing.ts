@@ -220,6 +220,7 @@ function showFinishDialog(screen: HTMLElement, engine: DrawingEngine) {
       <p class="dialog-text">おしまいにする？</p>
       <div class="dialog-buttons">
         <button class="btn btn--save">ほぞん</button>
+        <button class="btn btn--quit">おわる</button>
         <button class="btn btn--back">もどる</button>
       </div>
     </div>
@@ -235,11 +236,16 @@ function showFinishDialog(screen: HTMLElement, engine: DrawingEngine) {
       const drawing = await saveDrawing(imageData);
       addDrawingId(drawing.id);
       engine.destroy();
-      navigate('result', { imageData: drawing.url || imageData, drawingId: drawing.id });
+      navigate('title');
     } catch {
       saveBtn.textContent = 'もういちど';
       saveBtn.disabled = false;
     }
+  });
+
+  overlay.querySelector('.btn--quit')!.addEventListener('click', () => {
+    engine.destroy();
+    navigate('title');
   });
 
   overlay.querySelector('.btn--back')!.addEventListener('click', () => {

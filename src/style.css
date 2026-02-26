@@ -493,6 +493,10 @@ body {
   background: linear-gradient(135deg, #FF6B9D, #FF8E53);
 }
 
+.btn--quit {
+  background: #AAAAAA;
+}
+
 .btn--back {
   background: #AAAAAA;
 }

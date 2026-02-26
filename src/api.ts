@@ -11,28 +11,39 @@ export function isCloudMode(): boolean {
 }
 
 export async function saveDrawing(imageDataUrl: string): Promise<Drawing> {
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  // Always save to localStorage first
+  const localDrawing: Drawing = { id, url: imageDataUrl, createdAt: now };
+  const store = getLocalStore();
+  store[id] = localDrawing;
+  localStorage.setItem('oekaki_local_data', JSON.stringify(store));
+
   if (!API_URL) {
-    // Local mode: save to localStorage
-    const id = crypto.randomUUID();
-    const drawing: Drawing = {
-      id,
-      url: imageDataUrl,
-      createdAt: new Date().toISOString(),
-    };
-    const store = getLocalStore();
-    store[id] = drawing;
-    localStorage.setItem('oekaki_local_data', JSON.stringify(store));
-    return drawing;
+    return localDrawing;
   }
 
-  const res = await fetch(`${API_URL}/save`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image: imageDataUrl }),
-  });
+  // Also try to save to cloud
+  try {
+    const res = await fetch(`${API_URL}/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: imageDataUrl, id }),
+    });
 
-  if (!res.ok) throw new Error('Save failed');
-  return res.json();
+    if (res.ok) {
+      const cloudDrawing: Drawing = await res.json();
+      // Update localStorage with cloud URL
+      store[id] = cloudDrawing;
+      localStorage.setItem('oekaki_local_data', JSON.stringify(store));
+      return cloudDrawing;
+    }
+  } catch {
+    // Cloud save failed, but local save succeeded
+  }
+
+  return localDrawing;
 }
 
 export async function getDrawings(ids: string[]): Promise<Drawing[]> {

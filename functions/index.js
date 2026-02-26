@@ -8,7 +8,7 @@ const BUCKET_NAME = process.env.BUCKET_NAME;
 functions.http('api', async (req, res) => {
   // CORS
   res.set('Access-Control-Allow-Origin', '*');
-  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.set('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
@@ -26,13 +26,13 @@ functions.http('api', async (req, res) => {
   try {
     // POST /save - Save a drawing
     if (req.method === 'POST' && path === '/save') {
-      const { image } = req.body;
+      const { image, id: clientId } = req.body;
       if (!image) {
         res.status(400).json({ error: 'image is required' });
         return;
       }
 
-      const id = uuidv4();
+      const id = clientId || uuidv4();
       const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
       const buffer = Buffer.from(base64Data, 'base64');
 
@@ -45,8 +45,6 @@ functions.http('api', async (req, res) => {
           cacheControl: 'public, max-age=31536000',
         },
       });
-
-      await file.makePublic();
 
       const url = `https://storage.googleapis.com/${BUCKET_NAME}/drawings/${id}.png`;
       res.json({ id, url, createdAt: new Date().toISOString() });
@@ -99,6 +97,27 @@ functions.http('api', async (req, res) => {
       );
 
       res.json({ drawings: results.filter(Boolean) });
+    }
+
+    // DELETE /drawings/:id - Delete a drawing
+    else if (req.method === 'DELETE' && path.startsWith('/drawings/')) {
+      const id = path.replace('/drawings/', '');
+      if (!id) {
+        res.status(400).json({ error: 'id is required' });
+        return;
+      }
+
+      const bucket = storage.bucket(BUCKET_NAME);
+      const file = bucket.file(`drawings/${id}.png`);
+      const [exists] = await file.exists();
+
+      if (!exists) {
+        res.status(404).json({ error: 'Drawing not found' });
+        return;
+      }
+
+      await file.delete();
+      res.json({ success: true });
     }
 
     // 404

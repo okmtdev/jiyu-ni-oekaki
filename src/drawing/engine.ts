@@ -38,6 +38,9 @@ export class DrawingEngine {
     this.tempCtx = this.tempCanvas.getContext('2d')!;
 
     this.resize();
+    // Overwrite transparent pixels left by the default canvas (300x150)
+    this.ctx.fillStyle = '#FFFFFF';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.setupEvents();
     this.saveState();
   }

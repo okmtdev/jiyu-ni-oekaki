@@ -65,17 +65,17 @@ gcloud config set project YOUR_PROJECT_ID
 
 ```bash
 # バケット作成（リージョンは東京）
-gcloud storage buckets create gs://YOUR_BUCKET_NAME \
+gcloud storage buckets create gs://jiyu-ni-oekaki \
   --location=asia-northeast1 \
   --uniform-bucket-level-access
 
 # バケットを公開設定に
-gcloud storage buckets add-iam-policy-binding gs://YOUR_BUCKET_NAME \
+gcloud storage buckets add-iam-policy-binding gs://jiyu-ni-oekaki \
   --member=allUsers \
   --role=roles/storage.objectViewer
 
 # 静的ウェブサイトとして設定
-gcloud storage buckets update gs://YOUR_BUCKET_NAME \
+gcloud storage buckets update gs://jiyu-ni-oekaki \
   --web-main-page-suffix=index.html \
   --web-not-found-page=index.html
 ```
@@ -96,26 +96,26 @@ gcloud functions deploy api \
   --trigger-http \
   --allow-unauthenticated \
   --entry-point=api \
-  --set-env-vars=BUCKET_NAME=YOUR_BUCKET_NAME \
+  --set-env-vars=BUCKET_NAME=jiyu-ni-oekaki \
   --source=.
 
 cd ..
 ```
 
 デプロイ完了後、表示される URL を控えてください。
-例: `https://asia-northeast1-YOUR_PROJECT.cloudfunctions.net/api`
+例: `https://asia-northeast1-learings.cloudfunctions.net/api`
 
 ### 3. フロントエンドのビルドとデプロイ
 
 ```bash
 # .env ファイルを作成して API URL を設定
-echo "VITE_API_URL=https://asia-northeast1-YOUR_PROJECT.cloudfunctions.net/api" > .env
+echo "VITE_API_URL=https://asia-northeast1-learings.cloudfunctions.net/api" > .env
 
 # ビルド
 npm run build
 
 # Cloud Storage にアップロード
-gcloud storage cp -r dist/* gs://YOUR_BUCKET_NAME/
+gcloud storage cp -r dist/* gs://jiyu-ni-oekaki/
 ```
 
 ### 4. 動作確認
@@ -123,7 +123,7 @@ gcloud storage cp -r dist/* gs://YOUR_BUCKET_NAME/
 以下の URL でゲームにアクセスできます：
 
 ```
-https://storage.googleapis.com/YOUR_BUCKET_NAME/index.html
+https://storage.googleapis.com/jiyu-ni-oekaki/index.html
 ```
 
 または、カスタムドメインを設定している場合はそのドメインでアクセスします。
