@@ -481,6 +481,14 @@ body {
   gap: 12px;
 }
 
+.btn--clear-yes {
+  background: #FF4444;
+}
+
+.btn--delete {
+  background: #FF4444;
+}
+
 .btn--save {
   background: linear-gradient(135deg, #FF6B9D, #FF8E53);
 }

@@ -14,3 +14,8 @@ export function addDrawingId(id: string): void {
   ids.unshift(id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
 }
+
+export function removeDrawingId(id: string): void {
+  const ids = getMyDrawingIds().filter((i) => i !== id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+}

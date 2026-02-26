@@ -13,6 +13,7 @@ const TOOLS: { type: ToolType; label: string; icon: string }[] = [
   { type: 'marker', label: 'マーカー', icon: '🖊️' },
   { type: 'brush', label: 'ぶらし', icon: '🖌️' },
   { type: 'eraser', label: 'けしごむ', icon: '🧹' },
+  { type: 'fill', label: 'ぬりつぶし', icon: '🪣' },
   { type: 'stamp', label: 'スタンプ', icon: '⭐' },
 ];
 
@@ -117,9 +118,9 @@ export function showDrawingScreen(container: HTMLElement) {
     engine.undo();
   });
 
-  // Clear
+  // Clear (with confirmation)
   topbar.querySelector('.topbar-btn--clear')!.addEventListener('click', () => {
-    engine.clear();
+    showClearConfirmDialog(screen, engine);
   });
 
   // Finish
@@ -182,6 +183,32 @@ export function showDrawingScreen(container: HTMLElement) {
   // Resize handler
   const onResize = () => engine.resize();
   window.addEventListener('resize', onResize);
+}
+
+function showClearConfirmDialog(screen: HTMLElement, engine: DrawingEngine) {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+
+  overlay.innerHTML = `
+    <div class="dialog">
+      <p class="dialog-text">ぜんぶ けす？</p>
+      <div class="dialog-buttons">
+        <button class="btn btn--clear-yes">けす</button>
+        <button class="btn btn--back">やめる</button>
+      </div>
+    </div>
+  `;
+
+  overlay.querySelector('.btn--clear-yes')!.addEventListener('click', () => {
+    engine.clear();
+    overlay.remove();
+  });
+
+  overlay.querySelector('.btn--back')!.addEventListener('click', () => {
+    overlay.remove();
+  });
+
+  screen.appendChild(overlay);
 }
 
 function showFinishDialog(screen: HTMLElement, engine: DrawingEngine) {

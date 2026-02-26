@@ -1,6 +1,6 @@
 import { navigate } from '../main';
-import { getDrawings, getGallery, isCloudMode, type Drawing } from '../api';
-import { getMyDrawingIds } from '../storage';
+import { getDrawings, getGallery, deleteDrawing, isCloudMode, type Drawing } from '../api';
+import { getMyDrawingIds, removeDrawingId } from '../storage';
 
 export function showGalleryScreen(container: HTMLElement) {
   const screen = document.createElement('div');
@@ -117,6 +117,7 @@ export function showGalleryScreen(container: HTMLElement) {
         <div class="detail-actions">
           ${isMine && cloudMode ? `<button class="btn btn--line">LINE でシェア</button>` : ''}
           <button class="btn btn--download">ダウンロード</button>
+          ${isMine ? `<button class="btn btn--delete">さくじょ</button>` : ''}
           <button class="btn btn--close">とじる</button>
         </div>
       </div>
@@ -126,6 +127,16 @@ export function showGalleryScreen(container: HTMLElement) {
       overlay.querySelector('.btn--line')!.addEventListener('click', () => {
         const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(drawing.url)}`;
         window.open(lineUrl, '_blank');
+      });
+    }
+
+    const deleteBtn = overlay.querySelector('.btn--delete');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', () => {
+        showDeleteConfirmDialog(overlay, drawing, () => {
+          overlay.remove();
+          loadGallery();
+        });
       });
     }
 
@@ -148,6 +159,44 @@ export function showGalleryScreen(container: HTMLElement) {
     });
 
     screen.appendChild(overlay);
+  }
+
+  function showDeleteConfirmDialog(parentOverlay: HTMLElement, drawing: Drawing, onDeleted: () => void) {
+    const confirmOverlay = document.createElement('div');
+    confirmOverlay.className = 'overlay';
+    confirmOverlay.style.zIndex = '200';
+
+    confirmOverlay.innerHTML = `
+      <div class="dialog">
+        <p class="dialog-text">このえを けす？</p>
+        <div class="dialog-buttons">
+          <button class="btn btn--delete">けす</button>
+          <button class="btn btn--back">やめる</button>
+        </div>
+      </div>
+    `;
+
+    confirmOverlay.querySelector('.btn--delete')!.addEventListener('click', async () => {
+      const delBtn = confirmOverlay.querySelector('.btn--delete') as HTMLButtonElement;
+      delBtn.textContent = 'さくじょちゅう...';
+      delBtn.disabled = true;
+
+      try {
+        await deleteDrawing(drawing.id);
+        removeDrawingId(drawing.id);
+        confirmOverlay.remove();
+        onDeleted();
+      } catch {
+        delBtn.textContent = 'もういちど';
+        delBtn.disabled = false;
+      }
+    });
+
+    confirmOverlay.querySelector('.btn--back')!.addEventListener('click', () => {
+      confirmOverlay.remove();
+    });
+
+    parentOverlay.appendChild(confirmOverlay);
   }
 
   // Initial load

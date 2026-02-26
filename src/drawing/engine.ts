@@ -1,4 +1,4 @@
-export type ToolType = 'pen' | 'marker' | 'brush' | 'eraser' | 'stamp';
+export type ToolType = 'pen' | 'marker' | 'brush' | 'eraser' | 'stamp' | 'fill';
 
 interface Point {
   x: number;
@@ -106,6 +106,12 @@ export class DrawingEngine {
 
     if (this.tool === 'stamp') {
       this.placeStamp(point);
+      this.isDrawing = false;
+      return;
+    }
+
+    if (this.tool === 'fill') {
+      this.floodFill(point);
       this.isDrawing = false;
       return;
     }
@@ -246,6 +252,74 @@ export class DrawingEngine {
     }
 
     ctx.restore();
+  }
+
+  private floodFill(point: Point) {
+    const ctx = this.ctx;
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const data = imageData.data;
+
+    const sx = Math.round(point.x);
+    const sy = Math.round(point.y);
+    if (sx < 0 || sx >= w || sy < 0 || sy >= h) return;
+
+    // Parse fill color
+    const fillColor = this.hexToRgb(this.color);
+
+    // Get target color at clicked pixel
+    const startIdx = (sy * w + sx) * 4;
+    const targetR = data[startIdx];
+    const targetG = data[startIdx + 1];
+    const targetB = data[startIdx + 2];
+    const targetA = data[startIdx + 3];
+
+    // Don't fill if target color is same as fill color
+    if (targetR === fillColor.r && targetG === fillColor.g && targetB === fillColor.b && targetA === 255) return;
+
+    const tolerance = 32;
+
+    const matchTarget = (idx: number): boolean => {
+      return (
+        Math.abs(data[idx] - targetR) <= tolerance &&
+        Math.abs(data[idx + 1] - targetG) <= tolerance &&
+        Math.abs(data[idx + 2] - targetB) <= tolerance &&
+        Math.abs(data[idx + 3] - targetA) <= tolerance
+      );
+    };
+
+    // BFS flood fill
+    const stack: [number, number][] = [[sx, sy]];
+    const visited = new Uint8Array(w * h);
+
+    while (stack.length > 0) {
+      const [x, y] = stack.pop()!;
+      const pixelIdx = y * w + x;
+
+      if (x < 0 || x >= w || y < 0 || y >= h) continue;
+      if (visited[pixelIdx]) continue;
+
+      const dataIdx = pixelIdx * 4;
+      if (!matchTarget(dataIdx)) continue;
+
+      visited[pixelIdx] = 1;
+      data[dataIdx] = fillColor.r;
+      data[dataIdx + 1] = fillColor.g;
+      data[dataIdx + 2] = fillColor.b;
+      data[dataIdx + 3] = 255;
+
+      stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  private hexToRgb(hex: string): { r: number; g: number; b: number } {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+      : { r: 0, g: 0, b: 0 };
   }
 
   private placeStamp(point: Point) {

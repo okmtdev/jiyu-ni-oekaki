@@ -63,6 +63,18 @@ export async function getGallery(): Promise<Drawing[]> {
   return data.drawings;
 }
 
+export async function deleteDrawing(id: string): Promise<void> {
+  if (!API_URL) {
+    const store = getLocalStore();
+    delete store[id];
+    localStorage.setItem('oekaki_local_data', JSON.stringify(store));
+    return;
+  }
+
+  const res = await fetch(`${API_URL}/drawings/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Delete failed');
+}
+
 function getLocalStore(): Record<string, Drawing> {
   try {
     return JSON.parse(localStorage.getItem('oekaki_local_data') || '{}');

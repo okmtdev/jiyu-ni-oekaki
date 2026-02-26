@@ -40,7 +40,7 @@ export function showTitleScreen(container: HTMLElement) {
       <span class="title-palette-dot" style="background:#FF44AA"></span>
     </div>
     <div class="title-buttons">
-      <button class="btn btn--start">かいし</button>
+      <button class="btn btn--start">はじめる</button>
       <button class="btn btn--gallery">びじゅつかん</button>
     </div>
   `;
