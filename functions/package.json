@@ -1,0 +1,10 @@
+{
+  "name": "jiyu-ni-oekaki-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.4.0",
+    "@google-cloud/storage": "^7.14.0",
+    "uuid": "^11.0.0"
+  }
+}
